@@ -7,14 +7,12 @@ export default function Quiz() {
   const [options, setOptions] = useState([]);
   const [answer, setAnswer] = useState(null);
 
-  // Load flashcards JSON
   useEffect(() => {
     fetch("/ISL_Gifs.json")
       .then((res) => res.json())
       .then((json) => setData(json));
   }, []);
 
-  // Create a quiz question based on search input
   const generateQuestion = () => {
     if (!search.trim()) return;
 
@@ -29,13 +27,11 @@ export default function Quiz() {
       return;
     }
 
-    // pick 3 random wrong options
     let wrongOptions = data
       .filter((d) => d.word !== entry.word && (d.gif || d.image))
       .sort(() => 0.5 - Math.random())
       .slice(0, 3);
 
-    // shuffle correct + wrong options
     let allOptions = [...wrongOptions, entry].sort(() => 0.5 - Math.random());
 
     setQuestion(entry);
@@ -48,21 +44,23 @@ export default function Quiz() {
   };
 
   return (
-    <div className="p-6 max-w-xl mx-auto">
-      <h1 className="text-2xl font-bold mb-4">ISL Quiz</h1>
+    <div className="min-h-screen flex flex-col items-center bg-gradient-to-r from-purple-50 via-pink-50 to-yellow-50 p-6">
+      <h1 className="text-4xl font-extrabold text-purple-700 mb-8 animate-pulse">
+        🖐 ISL Quiz
+      </h1>
 
-      {/* Search box */}
-      <div className="flex gap-2 mb-4">
+      {/* Search Box */}
+      <div className="flex w-full max-w-xl gap-4 mb-8">
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search a word or letter..."
-          className="border px-3 py-2 flex-1 rounded"
+          className="flex-1 px-4 py-3 rounded-lg border-2 border-purple-300 focus:outline-none focus:ring-2 focus:ring-purple-300 transition"
         />
         <button
           onClick={generateQuestion}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="px-6 py-3 bg-purple-600 text-white font-bold rounded-lg shadow hover:bg-purple-700 transition transform hover:scale-105"
         >
           Start Quiz
         </button>
@@ -70,51 +68,71 @@ export default function Quiz() {
 
       {/* Quiz Question */}
       {question && (
-        <div className="mt-4">
-          <p className="font-semibold mb-4">
-            Which of these signs represents:{" "}
-            <span className="text-blue-600">{question.word}</span>?
+        <div className="w-full max-w-3xl bg-white p-6 rounded-2xl shadow-lg border border-gray-200">
+          <p className="text-lg font-semibold mb-6 text-gray-800 text-center">
+            Which sign represents:{" "}
+            <span className="text-purple-600 font-bold">{question.word}</span>?
           </p>
 
-          {/* Options (4 photos) */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Options */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-4">
             {options.map((opt, idx) => {
               const src = opt.gif || opt.image;
               return (
                 <button
                   key={idx}
                   onClick={() => handleAnswer(opt)}
-                  className="border rounded overflow-hidden hover:scale-105 transition"
+                  className={`flex items-center justify-center bg-gray-50 rounded-xl shadow-md p-2 hover:scale-105 transition-transform border-2 ${
+                    answer
+                      ? opt.word === question.word
+                        ? "border-green-500"
+                        : "border-gray-200"
+                      : "border-purple-200"
+                  }`}
                 >
                   <img
                     src={src}
-                    alt={opt.word}
-                    className="w-40 h-40 object-contain"
+                    alt="Option"
+                    className="w-28 h-28 object-contain rounded-md"
                   />
                 </button>
               );
             })}
           </div>
 
-          {/* Answer feedback */}
+          {/* Answer Feedback */}
           {answer && (
-            <div className="mt-4">
-              {answer === "correct" ? (
-                <p className="text-green-600 font-bold">✅ Correct!</p>
-              ) : (
-                <p className="text-red-600 font-bold">❌ Wrong!</p>
-              )}
-              <div className="mt-2">
-                <p className="font-semibold">Correct Answer:</p>
+            <div
+              className={`mt-6 flex flex-col md:flex-row items-center gap-6 p-4 rounded-xl border-l-4 ${
+                answer === "correct"
+                  ? "bg-green-50 border-green-500"
+                  : "bg-red-50 border-red-500"
+              }`}
+            >
+              <p
+                className={`text-lg font-bold ${
+                  answer === "correct" ? "text-green-700" : "text-red-700"
+                }`}
+              >
+                {answer === "correct" ? "✅ Correct!" : "❌ Wrong!"}
+              </p>
+              <div className="flex flex-col items-center">
+                <p className="font-medium text-gray-700 text-sm">Correct Answer:</p>
                 <img
                   src={question.gif || question.image}
-                  alt={question.word}
-                  className="w-40 h-40 object-contain mt-2"
+                  alt="Correct Answer"
+                  className="w-28 h-28 object-contain rounded-md shadow"
                 />
               </div>
             </div>
           )}
         </div>
+      )}
+
+      {!question && search && (
+        <p className="text-center mt-6 text-gray-500 text-lg">
+          No results found for "{search}"
+        </p>
       )}
     </div>
   );
